@@ -7,7 +7,7 @@ import subprocess
 import uuid
 
 parser = argparse.ArgumentParser(description='Switch your tmux theme')
-parser.add_argument('theme', choices=['cosmic-pastel', 'neon-grid', 'deep-sea', 'moonlight', 'warm-espresso'])
+parser.add_argument('theme', choices=['storm', 'forest', 'aurora', 'deep-sea', 'moonlight', 'glacier', 'cosmic-pastel', 'neon-grid', 'warm-espresso'])
 args = parser.parse_args()
 directory = Path.home() / '.config/tmux/themes'
 selected = directory / (args.theme + '.conf')

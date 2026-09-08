@@ -1,18 +1,22 @@
 # tmux config
 
-Personal tmux setup for **Konsole → SSH → tmux**, with Deep Sea as the default theme.
+Personal tmux setup for **Konsole → SSH → tmux**, with **Storm** as the default theme and **Forest** saved as a favorite alternative.
 
 ## Themes
 
 | Name | Look |
 | --- | --- |
+| `storm` | Blue-grey panels, silver text, soft cyan (default) |
+| `forest` | Deep evergreen, sage highlights, copper accents |
+| `aurora` | Smoky aubergine, soft mint, lavender |
+| `glacier` | Light icy panels, navy text, teal accents |
 | `deep-sea` | Dark petrol, mint highlights, soft coral |
 | `moonlight` | Muted indigo, icy blue, pale lavender |
 | `cosmic-pastel` | Plum, lavender session badge, peach active tabs |
 | `neon-grid` | Original near-black futuristic theme, cyan and violet |
 | `warm-espresso` | Neon Grid layout with warm brown panels |
 
-Deep Sea, Moonlight and Neon Grid include pane labels with the current command and directory. Cosmic Pastel restores the original pane borders and backgrounds. No special icon font is required. Layouts adapt to narrow and wide terminals; the extra clock/date appears on wide clients.
+All themes except Cosmic Pastel include pane labels with the current command and directory. Cosmic Pastel restores the original pane borders and backgrounds. No special icon font is required. Layouts adapt to narrow and wide terminals; the extra clock/date appears on wide clients.
 
 ## Install
 
@@ -25,11 +29,15 @@ python3 install.py
 tmux source-file ~/.tmux.conf
 ```
 
-The installer backs up existing destination files under `~/.local/state/tmux-config/backups/` before replacing them. It installs copies, so subsequent repository edits require running the installer again. Installation defaults to Deep Sea; use `--theme moonlight` to select another initial theme. Ensure `~/.local/bin` is on PATH.
+The installer backs up existing destination files under `~/.local/state/tmux-config/backups/` before replacing them. It installs copies, so subsequent repository edits require running the installer again. Installation defaults to Storm; use `--theme forest` to select another initial theme. Ensure `~/.local/bin` is on PATH.
 
 Switch palettes live:
 
 ```sh
+tmux-theme storm
+tmux-theme forest
+tmux-theme aurora
+tmux-theme glacier
 tmux-theme deep-sea
 tmux-theme moonlight
 tmux-theme cosmic-pastel

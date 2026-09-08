@@ -8,7 +8,7 @@ import time
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--home', type=Path, default=Path.home(), help='Destination home (also useful for testing)')
-parser.add_argument('--theme', choices=['deep-sea','moonlight','cosmic-pastel','neon-grid','warm-espresso'], default='deep-sea')
+parser.add_argument('--theme', choices=['storm', 'forest', 'aurora', 'deep-sea', 'moonlight', 'glacier', 'cosmic-pastel', 'neon-grid', 'warm-espresso'], default='storm')
 args = parser.parse_args()
 source = Path(__file__).resolve().parent
 home = args.home.expanduser().resolve()
