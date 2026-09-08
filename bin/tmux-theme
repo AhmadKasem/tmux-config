@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Switch the saved tmux theme without disturbing overview/recovery integration."""
+import argparse
+import os
+from pathlib import Path
+import subprocess
+import uuid
+
+parser = argparse.ArgumentParser(description='Switch your tmux theme')
+parser.add_argument('theme', choices=['cosmic-pastel', 'neon-grid', 'deep-sea', 'moonlight', 'warm-espresso'])
+args = parser.parse_args()
+directory = Path.home() / '.config/tmux/themes'
+selected = directory / (args.theme + '.conf')
+if not selected.is_file():
+    parser.error('Theme file is missing: ' + str(selected))
+temp = directory / ('.current-' + uuid.uuid4().hex)
+try:
+    temp.symlink_to(selected.name)
+    os.replace(temp, directory / 'current.conf')
+finally:
+    temp.unlink(missing_ok=True)
+result = subprocess.run(['tmux', 'source-file', str(Path.home() / '.tmux.conf')])
+if result.returncode:
+    raise SystemExit(result.returncode)
+print('Theme: ' + args.theme)
