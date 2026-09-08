@@ -1,0 +1,31 @@
+--- a/scripts/helpers.sh
++++ b/scripts/helpers.sh
+@@ -52,7 +52,7 @@
+ 
+ 
+ supported_tmux_version_ok() {
+-	$CURRENT_DIR/check_tmux_version.sh "$SUPPORTED_VERSION"
++	"$CURRENT_DIR/check_tmux_version.sh" "$SUPPORTED_VERSION"
+ }
+ 
+ remove_first_char() {
+--- a/scripts/spinner_helpers.sh
++++ b/scripts/spinner_helpers.sh
+@@ -1,5 +1,5 @@
+ start_spinner() {
+-	$CURRENT_DIR/tmux_spinner.sh "$1" "$2" &
++	"$CURRENT_DIR/tmux_spinner.sh" "$1" "$2" &
+ 	export SPINNER_PID=$!
+ }
+ 
+--- a/scripts/save.sh
++++ b/scripts/save.sh
+@@ -230,7 +230,7 @@
+ 	# remove resurrect files older than 30 days (default), but keep at least 5 copies of backup.
+ 	local delete_after="$(get_tmux_option "$delete_backup_after_option" "$default_delete_backup_after")"
+ 	local -a files
+-	files=($(ls -t $(resurrect_dir)/${RESURRECT_FILE_PREFIX}_*.${RESURRECT_FILE_EXTENSION} | tail -n +6))
++	mapfile -d '' -t files < <(printf '%s\0' "$(resurrect_dir)"/${RESURRECT_FILE_PREFIX}_*.${RESURRECT_FILE_EXTENSION} | sort -zr | tail -z -n +6)
+ 	[[ ${#files[@]} -eq 0 ]] ||
+ 		find "${files[@]}" -type f -mtime "+${delete_after}" -exec rm -v "{}" \; > /dev/null
+ }

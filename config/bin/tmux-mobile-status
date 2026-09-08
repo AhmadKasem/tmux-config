@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Compact attention cues without removing continuum's save interpolation."""
+import argparse
+from pathlib import Path
+import re
+import shlex
+import shutil
+import subprocess
+
+MARKER = '#{T:@tmux-mobile-wide-status}'
+
+
+def tmux(*args):
+    return subprocess.run(['tmux', *args], check=True, capture_output=True, text=True, timeout=5).stdout.rstrip('\n')
+
+
+def overview_path():
+    found = shutil.which('overview')
+    fallback = Path.home() / '.local/bin/overview'
+    return found or (str(fallback) if fallback.is_file() else None)
+
+
+def compact():
+    overview = overview_path()
+    if not overview:
+        return
+    try:
+        output = subprocess.run([overview, 'status'], check=True, capture_output=True, text=True, timeout=4).stdout.strip()
+        match = re.fullmatch(r'W:(\d+) R:(\d+) D:(\d+) save:(\S+)', output)
+        if not match:
+            print('overview?')
+            return
+        waiting, ready, due, saved = match.groups()
+        print(f'W:{waiting} R:{ready} D:{due}' + (' S!' if saved.endswith('!') else ''))
+    except (OSError, subprocess.SubprocessError):
+        print('overview?')
+
+
+def configure():
+    current = tmux('show-options', '-gqv', 'status-right')
+    # Keep continuum's command at the outer level so saving and diagnostics work.
+    saves = list(dict.fromkeys(re.findall(r"#\([^\n()]*continuum_save\.sh['\"]?\)", current)))
+    wide = tmux('show-options', '-gqv', '@tmux-mobile-wide-status') if MARKER in current else current
+    for save in saves:
+        wide = wide.replace(save, '')
+    tmux('set-option', '-g', '@tmux-mobile-wide-status', wide)
+    command = shlex.join([str(Path(__file__).resolve()), 'compact'])
+    compact_format = '#(' + command + ')'
+    tmux('set-option', '-g', 'status-right', ''.join(saves) + '#{?#{e|<:#{client_width},80},' + compact_format + ',' + MARKER + '}')
+    # Add the easier alias only when g is unused or already owned by overview.
+    overview = overview_path()
+    existing = subprocess.run(['tmux', 'list-keys', '-T', 'prefix', 'g'], capture_output=True, text=True).stdout
+    owned = False
+    try:
+        binding = shlex.split(existing)
+        argv = shlex.split(binding[-1]) if binding else []
+        owned = (bool(overview) and len(argv) >= 2 and argv[1] == 'open'
+                 and Path(argv[0]).is_absolute()
+                 and Path(argv[0]).resolve() == Path(overview).resolve())
+    except (ValueError, IndexError):
+        pass
+    if overview and (not existing.strip() or owned):
+        tmux('bind-key', 'g', 'run-shell', shlex.join([overview, 'open', '--client', '#{client_name}']))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('action', choices=['configure', 'compact'])
+    args = parser.parse_args()
+    try:
+        configure() if args.action == 'configure' else compact()
+    except (OSError, subprocess.SubprocessError) as error:
+        parser.exit(1, f'tmux-mobile-status: {error}\n')

@@ -1,0 +1,4 @@
+#!/bin/sh
+sleep 3
+tmux has-session 2>/dev/null || exit 0
+exec "$(dirname "$0")/overview" bootstrap

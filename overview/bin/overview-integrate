@@ -1,0 +1,36 @@
+#!/usr/bin/env python3.13
+"""Finish asynchronous startup after a tmux target exists, then wrap mobile status."""
+from pathlib import Path
+import shlex
+import fcntl
+import subprocess
+import sys
+import time
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from overview.tmux import Tmux
+from overview.recovery import VENDOR
+
+tmux = Tmux()
+for _ in range(50):
+    if tmux.run('list-panes', check=False):
+        break
+    time.sleep(.1)
+from overview.state import state_dir
+from overview.install import configure_status
+directory = state_dir()
+directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+lock = (directory / 'integration.lock').open('a')
+fcntl.flock(lock, fcntl.LOCK_EX)
+right = tmux.option('status-right')
+if '#{T:@tmux-mobile-wide-status}' in right:
+    tmux.option('status-right', tmux.option('@tmux-mobile-wide-status'))
+configure_status(tmux)
+subprocess.run([str(VENDOR / 'tmux-continuum/continuum.tmux')], env=tmux.environment(), check=True, capture_output=True)
+# Upstream interpolates an unquoted path. Normalize without modifying pinned vendor code.
+path = str(VENDOR / 'tmux-continuum/scripts/continuum_save.sh')
+right = tmux.option('status-right')
+tmux.option('status-right', right.replace('#(' + path + ')', '#(' + shlex.quote(path) + ')'))
+mobile_path = tmux.option('@tmux-workspace-mobile-script')
+mobile = Path(mobile_path)
+if mobile_path and mobile.is_file():
+    subprocess.run([str(mobile), 'configure'], env=tmux.environment(), check=True)

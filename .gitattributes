@@ -1,0 +1,3 @@
+# Preserve upstream whitespace and unified-diff context verbatim.
+overview/vendor/** -whitespace
+overview/patches/*.patch -whitespace
